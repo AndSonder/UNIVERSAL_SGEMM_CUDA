@@ -11,7 +11,7 @@
 
 void run_sgemm_naive(const float *A, const float *B, float *C, int m, int n, int k) {
     dim3 block_size(32, 32);
-    dim3 grid_size(CEIL_DIV(n, block_size.x), CEIL_DIV(m, block_size.y));
+    dim3 grid_size(CEIL_DIV(m, 32), CEIL_DIV(n, 32));
     sgemm_naive_kernel<<<grid_size, block_size>>>(A, B, C, m, n, k);
 }
 
@@ -23,4 +23,8 @@ void run_cutlass_sgemm(const float *A, const float *B, float *C, int m, int n, i
     float beta = 0.0f;
     cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha, B, n, A, k, &beta, C, n);
     cublasDestroy(handle);
+}
+
+void run_sgemm_naive_cpu(const float *A, const float *B, float *C, int m, int n, int k) {
+    sgemm_naive_cpu(A, B, C, m, n, k);
 }

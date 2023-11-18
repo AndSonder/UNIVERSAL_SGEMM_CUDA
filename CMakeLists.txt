@@ -22,7 +22,8 @@ include(CheckLanguage)
 check_language(CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CUDA_COMPUTE_CAPABILITY 86)
+# change it to higher version if you have a newer GPU (50 is suitable for GTX 1080Ti)
+set(CUDA_COMPUTE_CAPABILITY 50)
 
 # in debug mode, add debug symbols to device code
 # this disables most optimizations and kills performance
@@ -39,3 +40,5 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src SRC)
 add_executable(sgemm ${PROJECT_SOURCE_DIR}/src/sgemm.cu ${SRC})
 set_target_properties(sgemm PROPERTIES CUDA_ARCHITECTURES ${CUDA_COMPUTE_CAPABILITY})
 target_link_libraries(sgemm ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+
+execute_process(COMMAND cp -r ${PROJECT_SOURCE_DIR}/scripts ${PROJECT_SOURCE_DIR}/build)
