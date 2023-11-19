@@ -28,8 +28,14 @@ bool run_kernel(const float* A, const float* B, float* C, int m, int n, int k, i
     case 0:
         run_sgemm_naive(A, B, C, m, n, k);
         return true;
+    case 1:
+        run_sgemm_global_memory_coalescing(A, B, C, m, n, k);
+        return true;
+    case 2:
+        run_sgemm_shared_memory(A, B, C, m, n, k);
+        return true;
     default:
-        std::cout << "Invalid run type" << std::endl;
+        printf("Invalid run type\n");
         return false;
     }
 }
