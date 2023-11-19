@@ -50,5 +50,4 @@ __global__ void sgemm_shared_mem_kernel(const float *A, const float *B, float *C
     if (bx * BLOCKSIZE + thread_x < M && by * BLOCKSIZE + thread_y < N) {
         C[thread_x * N + thread_y] = tmp;
     }
-    
 }
