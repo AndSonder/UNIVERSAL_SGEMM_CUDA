@@ -27,17 +27,12 @@ __global__ void sgemm_shared_mem_kernel(const float *A, const float *B, float *C
     for (int i = 0;i < K;i += BLOCKSIZE)
     {
         // load the next block of the input matrices into shared memory
-        A_shared[thread_x * BLOCKSIZE + thread_y] = A[thread_x * K + thread_y];
-        B_shared[thread_x * BLOCKSIZE + thread_y] = B[thread_x * N + thread_y];
+        A_shared[thread_x * BLOCKSIZE + thread_y] = (bx * BLOCKSIZE + thread_x < M && i + thread_y < K) ? A[thread_x * K + thread_y] : 0.0f;
+        B_shared[thread_x * BLOCKSIZE + thread_y] = (by * BLOCKSIZE + thread_y < N && i + thread_x < K) ? B[thread_x * N + thread_y] : 0.0f;
 
         // wait for all threads to finish loading
         __syncthreads();
 
-        // advance the pointers
-        A += BLOCKSIZE;
-        B += BLOCKSIZE * N;
-
-        
         // compute the partial sum
         for (int j = 0; j < BLOCKSIZE; j++)
         {
@@ -46,7 +41,12 @@ __global__ void sgemm_shared_mem_kernel(const float *A, const float *B, float *C
 
         // wait for all threads to finish computing
         __syncthreads();
+
+        // advance the pointers
+        A += BLOCKSIZE;
+        B += BLOCKSIZE * N;
     }
+
     if (bx * BLOCKSIZE + thread_x < M && by * BLOCKSIZE + thread_y < N) {
         C[thread_x * N + thread_y] = tmp;
     }

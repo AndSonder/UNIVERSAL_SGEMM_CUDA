@@ -27,3 +27,9 @@ $GEMM_MODE=0/1/2/3/4/5
 |64|1605632|147|global_memory_coalescing|79366|
 |64|559104|147|global_memory_coalescing|28115.3|
 |256|50176|1024|global_memory_coalescing|63925.2|
+|32|1605632|27|shared_memory|13594.9|
+|384|14161|1152|shared_memory|42083.7|
+|256|43264|1152|shared_memory|85513.6|
+|64|1605632|147|shared_memory|114396|
+|64|559104|147|shared_memory|40141.6|
+|256|50176|1024|shared_memory|88951.5|

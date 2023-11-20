@@ -38,7 +38,7 @@ void run_sgemm_global_memory_coalescing(const float *A, const float *B, float *C
 
 void run_sgemm_shared_memory(const float *A, const float *B, float *C, int m, int n, int k) {
     const int BLOCKSIZE = 32;
-    dim3 block_size(32 * 32);
-    dim3 grid_size(CEIL_DIV(m, 32), CEIL_DIV(n, 32));
+    dim3 block_size(BLOCKSIZE * BLOCKSIZE);
+    dim3 grid_size(CEIL_DIV(m, BLOCKSIZE), CEIL_DIV(n, BLOCKSIZE));
     sgemm_shared_mem_kernel<BLOCKSIZE><<<grid_size, block_size>>>(A, B, C, m, n, k);
 }
