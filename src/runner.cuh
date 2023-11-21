@@ -42,3 +42,14 @@ void run_sgemm_shared_memory(const float *A, const float *B, float *C, int m, in
     dim3 grid_size(CEIL_DIV(m, BLOCKSIZE), CEIL_DIV(n, BLOCKSIZE));
     sgemm_shared_mem_kernel<BLOCKSIZE><<<grid_size, block_size>>>(A, B, C, m, n, k);
 }
+
+void run_sgemm_blocktiling_1d(const float *A, const float *B, float *C, int m, int n, int k) {
+    const uint BM = 64;
+    const uint BN = 64;
+    const uint BK = 8;
+    const uint TM = 8;
+    dim3 grid_size(CEIL_DIV(n, BN), CEIL_DIV(m, BM));
+    dim3 block_size((BM * BN) / TM);
+    sgemm_blocktiling_1d_kernel<BM, BN, BK, TM>
+        <<<grid_size, block_size>>>(A, B, C, m, n, k);
+}
