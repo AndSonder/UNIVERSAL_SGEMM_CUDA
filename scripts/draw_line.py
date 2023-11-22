@@ -35,7 +35,7 @@ for algo, color in algorithm_colors.items():
 # Set labels and title
 ax.set_xlabel('Matrix')
 ax.set_ylabel('Time (us)')
-ax.set_title('Algorithm Performance')
+ax.set_title('SGEMM Algorithms Performance')
 ax.legend()
 
 # Add gridlines
