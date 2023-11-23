@@ -1,14 +1,20 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from matplotlib.ticker import LogLocator, ScalarFormatter
 # Data from the table
+algo = ['naive', 'global_memory_coalescing', 'shared_memory', 'blocktiling_1d', 'blocktiling_2d']
+algorithm = []
+for item in algo:
+    algorithm += [item]*6
+
 data = {
-    'Algorithm': ['naive']*6 + ['global_memory_coalescing']*6 + ['shared_memory']*6 + ['blocktiling_1d']*6,
-    'Matrix': ['Matrix 1', 'Matrix 2', 'Matrix 3', 'Matrix 4', 'Matrix 5', 'Matrix 6']*4,
+    'Algorithm': algorithm,
+    'Matrix': ['Matrix 1', 'Matrix 2', 'Matrix 3', 'Matrix 4', 'Matrix 5', 'Matrix 6']*len(algo),
     'Time (us)': [123707, 179951, 373887, 702349, 252176, 439462,
                   8976.98, 35116.6, 65442, 79366, 28115.3, 63925.2,
                   13594.9, 42083.7, 85513.6, 114396, 40141.6, 88951.5,
-                  2858.95, 4176.16, 8272.45, 10400.3, 3626.16, 8499.03]
+                  2858.95, 4176.16, 8272.45, 10400.3, 3626.16, 8499.03,
+                  2983.98, 2572.57, 5207.49, 8763.37, 3188.26, 5149.85]
 }
 
 # Create a pandas DataFrame
@@ -22,7 +28,8 @@ algorithm_colors = {
     'naive': 'blue',
     'global_memory_coalescing': 'green',
     'shared_memory': 'red',
-    'blocktiling_1d': 'purple'
+    'blocktiling_1d': 'purple',
+    'blocktiling_2d': 'orange'
 }
 
 # Plot each line
@@ -44,6 +51,13 @@ ax.grid(True, linestyle='--', alpha=0.7)
 # Customize axis ticks
 ax.set_xticks(df['Matrix'].unique())  # Use unique matrices for ticks
 ax.set_xticklabels(sorted(df['Matrix'].unique()))  # Sort to maintain order
+
+ax.set_yscale('log')
+# Customize log-scale axis ticks
+ax.yaxis.set_major_locator(LogLocator(subs=[1, 1.5, 2, 10]))
+
+# Use ScalarFormatter for log-scale axis labels
+ax.yaxis.set_major_formatter(ScalarFormatter())
 
 # Add a legend with a shadow and a title
 legend = ax.legend(title='Algorithm', loc='upper left')

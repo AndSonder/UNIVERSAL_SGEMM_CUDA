@@ -23,8 +23,11 @@ __global__ void sgemm_blocktiling_1d_kernel(const float *A, const float *B, floa
     B += c_col * BN;
     C += c_row * BM * N + c_col * BN;
 
+    // use to avoid out-of-bounds accesses
     int global_m_pos = c_row * BM * K;
     int global_n_pos = c_col * BN;
+    const uint m_size = M * K;
+    const uint n_size = N * K;
 
     assert(BM * BK == blockDim.x);
     assert(BN * BK == blockDim.x);
@@ -41,8 +44,8 @@ __global__ void sgemm_blocktiling_1d_kernel(const float *A, const float *B, floa
     for (uint bk_idx = 0; bk_idx < K; bk_idx += BK)
     {
         // load the next block of the input matrices into shared memory
-        A_shared[A_inner_row * BK + A_inner_col] = (global_m_pos + A_inner_row * K + A_inner_col < M * K) ? A[A_inner_row * K + A_inner_col] : 0.0f;
-        B_shared[B_inner_row * BN + B_inner_col] = (global_n_pos + B_inner_row * N + B_inner_col < N * K) ? B[B_inner_row * N + B_inner_col] : 0.0f;
+        A_shared[A_inner_row * BK + A_inner_col] = (global_m_pos + A_inner_row * K + A_inner_col < m_size) ? A[A_inner_row * K + A_inner_col] : 0.0f;
+        B_shared[B_inner_row * BN + B_inner_col] = (global_n_pos + B_inner_row * N + B_inner_col < n_size) ? B[B_inner_row * N + B_inner_col] : 0.0f;
 
         // wait for all threads to finish loading
         __syncthreads();
@@ -61,7 +64,6 @@ __global__ void sgemm_blocktiling_1d_kernel(const float *A, const float *B, floa
             float tmp_b = B_shared[dot_idx * BN + thread_col];
             for (uint res_idx = 0; res_idx < TM; res_idx++)
             {
-                // (threadRow * TM + resIdx) * BK + dotIdx
                 thread_results[res_idx] += A_shared[(thread_row * TM + res_idx) * BK + dot_idx] * tmp_b;
             }
         }

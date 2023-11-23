@@ -39,5 +39,11 @@ $GEMM_MODE=0/1/2/3/4/5
 |64|1605632|147|blocktiling_1d|10400.3|
 |64|559104|147|blocktiling_1d| 3626.16|
 |256|50176|1024|blocktiling_1d|8499.03|
+|32|1605632|27|blocktiling_2d|2983.98|
+|384|14161|1152|blocktiling_2d|2572.57|
+|256|43264|1152|blocktiling_2d|5207.49|
+|64|1605632|147|blocktiling_2d|8763.37|
+|64|559104|147|blocktiling_2d| 3188.26|
+|256|50176|1024|blocktiling_2d|5149.85|
 
 ![picture](./imgs/algorithm_performance_plot.png)

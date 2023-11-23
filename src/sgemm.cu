@@ -37,6 +37,9 @@ bool run_kernel(const float* A, const float* B, float* C, int m, int n, int k, i
     case 3:
         run_sgemm_blocktiling_1d(A, B, C, m, n, k);
         return true;
+    case 4:
+        run_sgemm_blocktiling_2d(A, B, C, m, n, k);
+        return true;
     default:
         printf("Invalid run type\n");
         return false;
