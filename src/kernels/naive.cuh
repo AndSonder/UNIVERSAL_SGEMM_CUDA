@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-void sgemm_naive_cpu(const float *A, const float *B, float *C, int M, int N, int K)
+void sgemm_naive_cpu(float *A, float *B, float *C, int M, int N, int K)
 {
     for (int x = 0; x < M; x ++) {
         for (int y = 0; y < N; y ++) {
@@ -16,7 +16,7 @@ void sgemm_naive_cpu(const float *A, const float *B, float *C, int M, int N, int
     }
 }
 
-__global__ void sgemm_naive_kernel(const float *A, const float *B, float *C, int M, int N, int K)
+__global__ void sgemm_naive_kernel(float *A, float *B, float *C, int M, int N, int K)
 {
     const uint x = blockIdx.x * blockDim.x + threadIdx.x;
     const uint y = blockIdx.y * blockDim.y + threadIdx.y;

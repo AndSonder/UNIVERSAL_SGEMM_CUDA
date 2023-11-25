@@ -5,7 +5,7 @@
 
 template <const int BM, const int BN, const int BK, const int TM, const int TN>
 __global__ void __launch_bounds__((BM * BN) / (TM * TN), 1)
-    sgemm_blocktiling_2d_kernel(const float *A, const float *B, float *C, int M, int N, int K)
+    sgemm_blocktiling_2d_kernel(float *A, float *B, float *C, int M, int N, int K)
 {
     // the output block that we want to compute in this threadblock
     const uint c_row = blockIdx.y;
@@ -53,11 +53,13 @@ __global__ void __launch_bounds__((BM * BN) / (TM * TN), 1)
         // load the next block of the input matrices into shared memory
         for (uint load_offset = 0; load_offset < BM; load_offset += stride_a)
         {
-            A_shared[(A_inner_row + load_offset) * BK + A_inner_col] = (global_m_pos + (A_inner_row + load_offset) * K + A_inner_col < m_size) ? A[(A_inner_row + load_offset) * K + A_inner_col] : 0.0f;
+            A_shared[(A_inner_row + load_offset) * BK + A_inner_col] =
+                (global_m_pos + (A_inner_row + load_offset) * K + A_inner_col < m_size) ? A[(A_inner_row + load_offset) * K + A_inner_col] : 0.0f;
         }
         for (uint load_offset = 0; load_offset < BK; load_offset += stride_b)
         {
-            B_shared[(B_inner_row + load_offset) * BN + B_inner_col] = (global_n_pos + (B_inner_row + load_offset) * N + B_inner_col < n_size) ? B[(B_inner_row + load_offset) * N + B_inner_col] : 0.0f;
+            B_shared[(B_inner_row + load_offset) * BN + B_inner_col] =
+                (global_n_pos + (B_inner_row + load_offset) * N + B_inner_col < n_size) ? B[(B_inner_row + load_offset) * N + B_inner_col] : 0.0f;
         }
 
         // wait for all threads to finish loading

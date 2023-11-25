@@ -22,8 +22,8 @@ include(CheckLanguage)
 check_language(CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
-# change it to higher version if you have a newer GPU (50 is suitable for GTX 1080Ti)
-set(CUDA_COMPUTE_CAPABILITY 50)
+# change it to higher version if you have a newer GPU (60 is suitable for GTX 1080Ti)
+set(CUDA_COMPUTE_CAPABILITY 60)
 
 # in debug mode, add debug symbols to device code
 # this disables most optimizations and kills performance

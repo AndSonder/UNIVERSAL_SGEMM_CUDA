@@ -21,7 +21,7 @@
         }                                                                     \
     }
 
-bool run_kernel(const float* A, const float* B, float* C, int m, int n, int k, int run_type) 
+bool run_kernel(float* A, float* B, float* C, int m, int n, int k, int run_type) 
 {
     switch (run_type)
     {
@@ -39,6 +39,9 @@ bool run_kernel(const float* A, const float* B, float* C, int m, int n, int k, i
         return true;
     case 4:
         run_sgemm_blocktiling_2d(A, B, C, m, n, k);
+        return true;
+    case 5:
+        run_sgemm_vectorize(A, B, C, m, n, k);
         return true;
     default:
         printf("Invalid run type\n");

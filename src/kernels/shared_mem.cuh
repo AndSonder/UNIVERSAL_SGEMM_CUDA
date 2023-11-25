@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 
 template <const int BLOCKSIZE>
-__global__ void sgemm_shared_mem_kernel(const float *A, const float *B, float *C, int M, int N, int K)
+__global__ void sgemm_shared_mem_kernel(float *A, float *B, float *C, int M, int N, int K)
 {
     // the output block that we want to compute in this threadblock
     const uint c_row = blockIdx.x;

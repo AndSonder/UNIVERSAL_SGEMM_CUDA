@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 
 template <const int BLOCKSIZE>
-__global__ void sgemm_global_memory_coalescing_kernel(const float *A, const float *B, float *C, int M, int N, int K)
+__global__ void sgemm_global_memory_coalescing_kernel(float *A, float *B, float *C, int M, int N, int K)
 {
     const uint x = blockIdx.x * BLOCKSIZE + (threadIdx.x / BLOCKSIZE);
     const uint y = blockIdx.y * BLOCKSIZE + (threadIdx.x % BLOCKSIZE);

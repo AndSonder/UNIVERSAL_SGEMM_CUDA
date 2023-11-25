@@ -26,7 +26,7 @@ void zero_init_matrix(float *mat, int N) {
     memset(mat, 0, N * sizeof(float));
 }
 
-void print_matrix(const float *A, int M, int N){
+void print_matrix(float *A, int M, int N){
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++){
             std::cout << A[i * N + j] << " ";
