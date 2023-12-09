@@ -21,7 +21,16 @@
         }                                                                     \
     }
 
-bool run_kernel(float* A, float* B, float* C, int m, int n, int k, int run_type) 
+bool run_kernel(float *A,
+                float *B,
+                float *C,
+                int m,
+                int n,
+                int k,
+                size_t pitch_A = 0,
+                size_t pitch_B = 0,
+                size_t pitch_C = 0,
+                int run_type = 0)
 {
     switch (run_type)
     {
@@ -43,30 +52,34 @@ bool run_kernel(float* A, float* B, float* C, int m, int n, int k, int run_type)
     case 5:
         run_sgemm_vectorize(A, B, C, m, n, k);
         return true;
+    case 6:
+        run_sgemm_vectorize_v2(A, B, C, m, n, k, pitch_A, pitch_B, pitch_C);
+        return true;
     default:
         printf("Invalid run type\n");
         return false;
     }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     int m = atoi(argv[1]);
     int n = atoi(argv[2]);
     int k = atoi(argv[3]);
     int run_type = atoi(argv[4]);
 
     // Allocate memory for matrices
-    float* A = new float[m * k];
-    float* B = new float[k * n];
-    float* C = new float[m * n];
-    // save reference result
-    float* C_ref = new float[m * n];
+    float *A, *B, *C, *C_ref;
+    float *d_A, *d_B, *d_C, *d_C_ref;
+    // for pitch version
+    float *d_A_p, *d_B_p, *d_C_p;
+    size_t pitch_A, pitch_B, pitch_C;
 
-    float* d_A, *d_B, *d_C, *d_C_ref;
-    cudaMalloc((void**)&d_A, m * k * sizeof(float));
-    cudaMalloc((void**)&d_B, k * n * sizeof(float));
-    cudaMalloc((void**)&d_C, m * n * sizeof(float));
-    cudaMalloc((void**)&d_C_ref, m * n * sizeof(float));
+    A = new float[m * k];
+    B = new float[k * n];
+    C = new float[m * n];
+    // save reference result
+    C_ref = new float[m * n];
 
     // Initialize matrices: use range_init_matrix/randomize_matrix/zero_init_matrix
     randomize_matrix(A, m * k);
@@ -74,19 +87,49 @@ int main(int argc, char** argv) {
     zero_init_matrix(C, m * n);
     zero_init_matrix(C_ref, m * n);
 
+    cudaMalloc((void **)&d_A, m * k * sizeof(float));
+    cudaMalloc((void **)&d_B, k * n * sizeof(float));
+    cudaMalloc((void **)&d_C, m * n * sizeof(float));
+    cudaMalloc((void **)&d_C_ref, m * n * sizeof(float));
+
     // Copy matrices to device
     cudaMemcpy(d_A, A, m * k * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, B, k * n * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_C, C, m * n * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_C_ref, C_ref, m * n * sizeof(float), cudaMemcpyHostToDevice);
 
+    if (run_type >= 6)
+    {
+        // use cudaMallocPitch to allocate memory for matrices
+        cudaMallocPitch((void **)&d_A_p, &pitch_A, k * sizeof(float), m);
+        cudaMallocPitch((void **)&d_B_p, &pitch_B, n * sizeof(float), k);
+        cudaMallocPitch((void **)&d_C_p, &pitch_C, n * sizeof(float), m);
+        // Copy matrices to device
+        cudaMemcpy2D(d_A_p, pitch_A, A, k * sizeof(float), k * sizeof(float), m, cudaMemcpyHostToDevice);
+        cudaMemcpy2D(d_B_p, pitch_B, B, n * sizeof(float), n * sizeof(float), k, cudaMemcpyHostToDevice);
+        cudaMemcpy2D(d_C_p, pitch_C, C, n * sizeof(float), n * sizeof(float), m, cudaMemcpyHostToDevice);
+    }
+
     // Run reference matrix multiplication
     run_cutlass_sgemm(d_A, d_B, d_C_ref, m, n, k);
+
     cudaDeviceSynchronize();
     KernelErrChk();
 
     // Run matrix multiplication
-    if (!run_kernel(d_A, d_B, d_C, m, n, k, run_type))
+    bool run_success = false;
+    if (run_type >= 6)
+    {
+        run_success =
+            run_kernel(d_A_p, d_B_p, d_C_p, m, n, k, pitch_A, pitch_B, pitch_C, run_type);
+    }
+    else
+    {
+        run_success =
+            run_kernel(d_A, d_B, d_C, m, n, k, pitch_A, pitch_B, pitch_C, run_type);
+    }
+
+    if (!run_success)
     {
         std::cout << "Invalid run type" << std::endl;
         return 0;
@@ -95,28 +138,53 @@ int main(int argc, char** argv) {
     KernelErrChk();
 
     // Copy result back to host
-    cudaMemcpy(C, d_C, m * n * sizeof(float), cudaMemcpyDeviceToHost);
+    if (run_type >= 6)
+    {
+        cudaMemcpy2D(
+            C,
+            n * sizeof(float),
+            d_C_p,
+            pitch_C,
+            n * sizeof(float),
+            m,
+            cudaMemcpyDeviceToHost);
+    }
+    else
+    {
+        cudaMemcpy(C, d_C, m * n * sizeof(float), cudaMemcpyDeviceToHost);
+    }
     cudaMemcpy(C_ref, d_C_ref, m * n * sizeof(float), cudaMemcpyDeviceToHost);
 
     // Check result
     bool correct = true;
     float eps = 1e-6;
-    for (int i = 0; i < m * n; i++) {
-        if (abs(C[i] - C_ref[i]) > eps) {
+    for (int i = 0; i < m * n; i++)
+    {
+        if (abs(C[i] - C_ref[i]) > eps)
+        {
             printf("Error at position %d, expected %f, get %f\n", i, C_ref[i], C[i]);
             correct = false;
             break;
         }
     }
 
-    if (correct) {
+    if (correct)
+    {
         // run speed test
         cudaEvent_t start, stop;
         cudaEventCreate(&start);
         cudaEventCreate(&stop);
         cudaEventRecord(start, 0);
-        for (int i = 0; i < 100; i++) {
-            run_kernel(d_A, d_B, d_C, m, n, k, run_type);
+        for (int i = 0; i < 100; i++)
+        {
+            if (run_type >= 6)
+            {
+                run_kernel(d_A_p, d_B_p, d_C_p, m, n, k, pitch_A, pitch_B, pitch_C, run_type);
+            }
+            else 
+            {
+                run_kernel(d_A, d_B, d_C, m, n, k, pitch_A, pitch_B, pitch_C, run_type);
+            }
             cudaDeviceSynchronize();
         }
         KernelErrChk();

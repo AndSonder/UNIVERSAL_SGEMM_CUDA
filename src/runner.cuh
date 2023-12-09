@@ -104,3 +104,24 @@ void run_sgemm_vectorize(float *A, float *B, float *C, int m, int n, int k)
             <<<grid_size, block_size>>>(A, B, C, m, n, k);
     }
 }
+
+void run_sgemm_vectorize_v2(float *A,
+                            float *B,
+                            float *C,
+                            int m,
+                            int n,
+                            int k,
+                            size_t pitch_A,
+                            size_t pitch_B,
+                            size_t pitch_C)
+{
+    const uint BK = 8;
+    const uint TM = 8;
+    const uint TN = 8;
+    const uint BM = 128;
+    const uint BN = 128;
+    dim3 grid_size(CEIL_DIV(n, BN), CEIL_DIV(m, BM));
+    dim3 block_size((BM * BN) / (TM * TN));
+    sgemm_vectorize_v2_kernel<BM, BN, BK, TM, TN>
+        <<<grid_size, block_size>>>(A, B, C, m, n, k, pitch_A, pitch_B, pitch_C);
+}
