@@ -2,6 +2,17 @@
 
 > 仓库更新中，欢迎佬们提pr
 
+## Quick Run
+
+```bash
+GEMM_MODE=0
+mkdir build
+cd build
+cmake ..
+make
+./sgemm 32 1605632 27 $GEMM_MODE
+```
+
 ## Results
 
 ```
