@@ -1,5 +1,7 @@
 # UNIVERSAL SGEMM CUDA
 
+> 仓库更新中，欢迎佬们提pr
+
 ## Results
 
 ```
@@ -47,3 +49,10 @@ $GEMM_MODE=0/1/2/3/4/5
 |256|50176|1024|blocktiling_2d|5149.85|
 
 ![picture](./imgs/algorithm_performance_plot.png)
+
+
+# 参考资料
+
+1. https://github.com/wangzyon/NVIDIA_SGEMM_PRACTICE
+2. https://siboehm.com/articles/22/CUDA-MMM
+3. https://zhuanlan.zhihu.com/p/372973726
